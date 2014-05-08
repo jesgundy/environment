@@ -1,3 +1,7 @@
+[user]
+	name = # Jes Gundy
+	email = #
+
 [core]
 editor = subl --wait --line 1 --name 'Git Commit Message'
 excludesfile = ~/.gitignore
