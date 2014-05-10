@@ -96,9 +96,9 @@ defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 defaults write com.apple.screensaver askForPassword -int 1
 defaults write com.apple.screensaver askForPasswordDelay -int 0
 
-# Save screenshots to ~/Pictures/Screengrabs
-mkdir ~/Pictures/Screengrabs
-defaults write com.apple.screencapture location -string "$HOME/Pictures/Screengrabs"
+# Save screenshots to ~/Pictures/Screenshots
+mkdir ~/Pictures/Screenshots
+defaults write com.apple.screencapture location -string "$HOME/Pictures/Screenshots"
 
 # Disable shadow in screenshots
 defaults write com.apple.screencapture disable-shadow -bool true
