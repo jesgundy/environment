@@ -5,15 +5,8 @@ puts "Deploying environment..."
 
 dir = Dir.pwd
 
-bash_subfiles = %w[
-  bash/functions.sh
-  bash/path.sh
-  bash/prompt.sh
-  bash/settings.sh
-]
-
 dotfiles = %w[
-  bash/profile
+  dotiles/profile
   dotfiles/aprc
   dotfiles/gemrc
   dotfiles/gitconfig
@@ -24,13 +17,7 @@ dotfiles = %w[
   dotfiles/tm_properties
 ]
 
-system "mkdir -pv ~/.bash"
 system "mkdir -pv /usr/local/bin"
-
-bash_subfiles.each do |file|
-  system "cp -fv #{dir}/#{file} ~/.#{file}"
-  system "chmod -vv 750 ~/.#{file}"
-end
 
 dotfiles.each do |file|
   target_name = file.split("/").last
