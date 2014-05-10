@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
 # Set custom OS X defaults
-# See also:
-# https://github.com/mathiasbynens/dotfiles
-# https://github.com/Wilto/dotfiles/blob/master/bin/osxdefaults
 
 # -----------------------------------------------------------------------------
 # GENERAL UI
