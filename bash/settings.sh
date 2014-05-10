@@ -1,3 +1,6 @@
+# Activate the settings by running: 
+# source ~/.bash_profile
+
 # Big, big history
 export HISTSIZE=10000
 export HISTFILESIZE=$HISTSIZE
