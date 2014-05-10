@@ -141,10 +141,6 @@ defaults write com.apple.BluetoothAudioAgent "Stream - Flush Ring on Packet Drop
 defaults write com.apple.BluetoothAudioAgent "Stream - Max Outstanding Packets (editable)" 15
 defaults write com.apple.BluetoothAudioAgent "Stream Resume Delay" "0.75"
 
-# Speed up Magic Mice
-# The maximum available in the preference pane is 3.0
-defaults write -g com.apple.mouse.scaling 5.0
-
 # -----------------------------------------------------------------------------
 # MISC
 # -----------------------------------------------------------------------------
