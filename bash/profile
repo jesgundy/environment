@@ -1,6 +1,384 @@
-# Include subtree files
+# Activate the settings by running:
+# source ~/.bash_profile
 
-source ~/.bash/settings.sh
-source ~/.bash/path.sh
-source ~/.bash/prompt.sh
-source ~/.bash/functions.sh
+# Big, big history
+export HISTSIZE=10000
+export HISTFILESIZE=$HISTSIZE
+
+# Don't store duplicate entires
+export HISTCONTROL=ignoredups:erasedups
+
+# Make some commands not show up in history
+export HISTIGNORE="ls:ls *:cd:cd -:pwd;exit:date:* --help"
+
+# Append to history, don't overwrite it
+shopt -s histappend
+
+# Autocorrect typos in path names when using `cd`
+shopt -s cdspell
+
+# Editor
+export EDITOR="/usr/local/bin/mate -w"
+
+# Don't clear the screen after quitting a manual page
+export MANPAGER="less -X"
+
+# Install gems in parallel, set to number of CPU cores
+export BUNDLE_JOBS=$(sysctl -n hw.ncpu)
+
+# Commands that run each time a prompt is generated
+export PROMPT_COMMAND="prompt-command; $PROMPT_COMMAND"
+function prompt-command {
+  # Save and reload the history after each command finishes
+  # this lets multiple terminal windows work on the history together
+  history -a;
+  history -c;
+  history -r;
+  # Set window title to be the current directory
+  echo -ne "\033]0;${PWD##*/}\007";
+}
+
+
+
+
+
+# Custom $PATH
+
+export USR_PATH="./bin:/usr/local/bin:/usr/local/sbin"
+export HEROKU_PATH="/usr/local/heroku/bin"
+export PG_PATH="/Applications/Postgres.app/Contents/Versions/9.3/bin"
+export NODE_PATH="/usr/local/share/npm/bin"
+export OSX_PATH="/usr/bin:/usr/sbin:/bin:/sbin"
+
+export PATH="$USR_PATH:$HEROKU_PATH:$PG_PATH:$NODE_PATH:$OSX_PATH"
+
+# Activate rbenv
+
+export RBENV_ROOT="/usr/local/var/rbenv"
+if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------------
+# Custom Prompt
+# -----------------------------------------------------------------------------------
+# Don't use \e[ syntax for colors: it fucks up linebreaks. Use tput.
+# http://www.cyberciti.biz/faq/bash-shell-change-the-color-of-my-shell-prompt-under-linux-or-unix/
+#
+# Handy tput commands:
+#   tput bold           Bold effect
+#   tput rev            Display inverse colors
+#   tput setaf {CODE}   Set foreground color, see color {CODE} below
+#   tput setab {CODE}   Set background color, see color {CODE} below
+#   tput sgr0           Reset everything (use at end)
+#
+# tput color codes:
+#   0  Black
+#   1  Red
+#   2  Green
+#   3  Yellow
+#   4  Blue
+#   5  Magenta
+#   6  Cyan
+#   7  White
+# -----------------------------------------------------------------------------------
+
+# ROBCO INDUSTRIES
+# SET TERMINAL/INQUIRE
+export PS1="\n\[$(tput bold)\]\[$(tput setaf 1)\]INQUIRE ⚡ \[$(tput sgr0)\]"
+
+
+
+
+# -----------------------------------------------------------------------------
+# HEROKU
+# -----------------------------------------------------------------------------
+
+# Shorthand commands
+alias fs="foreman start"
+alias hc="heroku run rails console"
+alias htail="heroku logs --tail"
+alias hps="heroku ps"
+alias hadd="heroku config:add"
+
+# Migrate Heroku DB and restart
+function hmigrate {
+  heroku pgbackups:capture --expire && \
+  heroku run rake db:migrate && \
+  heroku restart
+}
+
+# Turn the Heroku app on and off quickly
+function hoff {
+  heroku scale web=0 && \
+  heroku maintenance:on
+}
+
+# Turn the Heroku app on and off quickly
+function hon {
+  heroku scale web=1 && \
+  heroku maintenance:off
+}
+
+# Deploy to Heroku, with optional extra commands, ex:
+# hdeploy
+# hdeploy migrate
+# hdeploy seed administrators
+function hdeploy {
+  if [[ "$1" = "migrate" ]]; then
+    git push github && \
+    heroku maintenance:on && \
+    heroku pgbackups:capture --expire && \
+    git push heroku && \
+    heroku run rake db:migrate && \
+    heroku restart && \
+    heroku maintenance:off
+  elif [[ "$1" = "seed" && -n "$2" ]]; then
+    git push github && \
+    heroku maintenance:on && \
+    heroku pgbackups:capture --expire && \
+    git push heroku && \
+    heroku run rake db:migrate && \
+    heroku run rake db:seed_fu FILTER=$2 && \
+    heroku restart && \
+    heroku maintenance:off
+  else
+    git push github && \
+    git push heroku
+  fi
+}
+
+# Print out the Heroku config as if it was a .env file
+function henv {
+  heroku config | sed -E "s/:[[:space:]]+/=/g" | tail -n +2
+}
+
+# Force a Heroku recompile
+function hforce-recompile {
+  git commit --allow-empty -m "Empty commit to force a recompile" && \
+  git push heroku master && \
+  git reset HEAD~ && \
+  git push --force heroku master
+}
+
+# -----------------------------------------------------------------------------
+# POSTGRES
+# -----------------------------------------------------------------------------
+
+# Dump a local database
+function dumpdb {
+  pg_dump --clean --format=custom --no-acl --verbose --file=$1.dump $1 && \
+  echo "✔ Written to ./$1.dump"
+}
+
+# Restore a database locally
+# https://devcenter.heroku.com/articles/heroku-postgres-import-export
+alias restoredb="pg_restore --verbose --clean --no-acl --no-owner -d"
+
+# Dump the current heroku production database to a file
+function hdump {
+  heroku pgbackups:capture --expire && \
+  wget -O ~/Downloads/latest.dump `heroku pgbackups:url` && \
+  echo "✔ Written to ~/Downloads/latest.dump"
+}
+
+# Download the current Heroku database and replace the local one
+function hpgpull {
+  dropdb $1
+  heroku pg:pull DATABASE $1 && \
+  echo "✔ Local database $1 overwritten with production data"
+}
+
+# -----------------------------------------------------------------------------
+# RAILS
+# -----------------------------------------------------------------------------
+
+# Shorthand commands
+alias be="bundle exec"
+
+function lb {
+  bundle install --path ./vendor/bundle && \
+  bundle exec rake rails:update:bin
+}
+
+# Update the bundle and clean out old cached gems
+function bu {
+  bundle update && \
+  bundle clean
+}
+
+# Create a Rails migration and open it
+function migration {
+  bundle exec rails generate migration $1 && \
+  mate db/migrate/`ls -t db/migrate/ | head -1`
+}
+
+# Remove the configured bundle from this Rails project folder
+function lb-implode {
+  echo "Destroying your local bundle"
+  echo "Removing ./vendor/bundle"
+  rm -rf ./vendor/bundle
+  echo "Removing ./.bundle"
+  rm -rf ./.bundle
+  echo "Removing Gemfile.lock"
+  rm -f Gemfile.lock
+}
+
+# Get started with a news Rails project quickly
+# Creates unversioned files and springs them open
+function railsup {
+
+  echo "Setting git config for core.filemode and core.ignorecase"
+  git config core.filemode false
+  git config core.ignorecase false
+
+  echo "Creating .env"
+  echo "PORT=8080" >> ".env"
+  echo "DATABASE_URL=postgres://localhost/DATABASE" >> ".env"
+  echo "RACK_ENV=development" >> ".env"
+  echo "RAILS_ENV=development" >> ".env"
+  mate "."
+  mate ".env"
+
+  echo "Creating tmp/cache"
+  mkdir "tmp"
+  mkdir "tmp/cache"
+  touch "tmp/cache/.gitkeep"
+
+  echo "Creating log/development.log"
+  mkdir "log"
+  touch "log/development.log"
+
+  echo "Installing bundle..."
+  lb
+
+}
+
+function uninstall-all-gems {
+  for i in `gem list --no-versions`; do gem uninstall -aIx $i; done
+}
+
+# -----------------------------------------------------------------------------
+# DJANGO
+# -----------------------------------------------------------------------------
+
+# Shorthand commands
+alias manage="python manage.py"
+alias localpip="pip install -r requirements.txt"
+alias runserver="manage runserver 0.0.0.0:8080"
+
+# Activate the venv, but give me back my pretty prompt
+function venv {
+  source venv/bin/activate
+  export PS1="\n\[$(tput setaf 2)\]VIRTUAL ⚡ \[$(tput sgr0)\]"
+}
+
+# -----------------------------------------------------------------------------
+# WOW
+# -----------------------------------------------------------------------------
+
+alias wow="git status --short --branch"
+alias such="git"
+alias very="git"
+
+# -----------------------------------------------------------------------------
+# OSX/UNIX
+# -----------------------------------------------------------------------------
+
+# Shorthand
+alias la="ls -lA"
+alias ax="chmod a+x"
+
+# Create and cd to a directory
+function mcd {
+  mkdir -p "$1" && cd "$1";
+}
+
+# Touch and open a file
+function tmate {
+  touch "$1" && mate "$1";
+}
+
+# Print your LAN IPv4 address
+function localip {
+  (awk '{print $2}' <(ifconfig en0 | grep 'inet '));
+}
+
+# Print your LAN IPv6 address
+function localipv6 {
+  (awk '{print $2}' <(ifconfig en0 | grep 'inet6 '));
+}
+
+# Extract nearly any command-line archive
+function extract {
+  if [ -f $1 ] ; then
+    case $1 in
+      *.tar.bz2)  tar xjf $1     ;;
+      *.tar.gz)   tar xzf $1     ;;
+      *.bz2)      bunzip2 $1     ;;
+      *.rar)      unrar e $1     ;;
+      *.gz)       gunzip $1      ;;
+      *.tar)      tar xf $1      ;;
+      *.tbz2)     tar xjf $1     ;;
+      *.tgz)      tar xzf $1     ;;
+      *.zip)      unzip $1       ;;
+      *.Z)        uncompress $1  ;;
+      *.7z)       7z x $1        ;;
+      *)          echo "'$1' cannot be extracted via extract()" ;;
+      esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+# Show a list of computers currently listening to your iTunes library
+function ituners {
+  lsof | grep iTunes | grep TCP
+}
+
+# Flush OS X's DNS caches
+function flushdns {
+  sudo dscacheutil -flushcache
+  sudo killall -HUP mDNSResponder
+}
+
+# Removes duplicates from the "Open With" menu in OS X
+# http://bit.ly/eF8UHG
+function fix-launch-services {
+  /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user
+  killall Finder
+}
+
+# Print your public IPv4 address
+function publicip {
+  curl -s https://whatismyip.akamai.com/;
+  printf "\n";
+}
+
+# Quit an OS X application from the command line
+function quit {
+  for app in $*; do
+    osascript -e 'quit app "'$app'"'
+  done
+}
+
+# Relaunch an OS X application from the command line
+function relaunch {
+  for app in $*; do
+    osascript -e 'quit app "'$app'"';
+    sleep 2;
+    open -a $app
+  done
+}
+
+# App Zapper an app
+function zap {
+  open -a AppZapper /Applications/"${1}".app
+}
+
+
