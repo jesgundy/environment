@@ -3,7 +3,7 @@ name = # Jes Gundy
 email = #
 
 [core]
-editor = subl -n -w
+editor = subl -w
 excludesfile = ~/.gitignore
 autocrlf = input
 filemode = false
