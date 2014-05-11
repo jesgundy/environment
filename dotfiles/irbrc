@@ -14,7 +14,7 @@ end
 
 # Custom prompt
 
-IRB.conf[:PROMPT][:CSUHTA] = {
+IRB.conf[:PROMPT][:GUNDY] = {
   PROMPT_I: ">> ",
   PROMPT_S: "** ",
   PROMPT_C: "** ",
@@ -22,7 +22,7 @@ IRB.conf[:PROMPT][:CSUHTA] = {
   RETURN:   "=> %s\n" ,
 }
 
-IRB.conf[:PROMPT_MODE] = :CSUHTA
+IRB.conf[:PROMPT_MODE] = :GUNDY
 
 # History settings
 
