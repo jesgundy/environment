@@ -26,6 +26,8 @@ new = checkout -b
 s = status --short --branch
 unassume = update-index --no-assume-unchanged
 up = "!git remote update -p; git merge --ff-only @{u}"
+sa = stash -u # stash all
+pop = stash pop
 
 [status]
 relativepaths = false
