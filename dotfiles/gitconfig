@@ -28,6 +28,7 @@ unassume = update-index --no-assume-unchanged
 up = "!git remote update -p; git merge --ff-only @{u}"
 sa = stash -u # stash all
 pop = stash pop
+# git checkout -- filename (reset individual)
 
 [status]
 relativepaths = false
