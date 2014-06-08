@@ -54,3 +54,4 @@ Thumbs.db
 !.slugignore
 !*.gitkeep
 !*.keep
+node_modules
