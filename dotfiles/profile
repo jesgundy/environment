@@ -281,3 +281,11 @@ function tsubl {
 function source {
   open -a SourceTree "${1}"
 }
+
+# NPM Install w/ save command
+function npm-s {
+  npm install --save-dev "${1}"
+}
+
+### Added by the Heroku Toolbelt
+# export PATH="/usr/local/heroku/bin:$PATH"
