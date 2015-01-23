@@ -1,6 +1,3 @@
-# Activate the settings by running:
-# source ~/.bash_profile
-
 # Big, big history
 export HISTSIZE=10000
 export HISTFILESIZE=$HISTSIZE
@@ -22,9 +19,6 @@ export EDITOR="/usr/local/bin/subl -w"
 
 # Don't clear the screen after quitting a manual page
 export MANPAGER="less -X"
-
-# Install gems in parallel, set to number of CPU cores
-export BUNDLE_JOBS=$(sysctl -n hw.ncpu)
 
 # Commands that run each time a prompt is generated
 export PROMPT_COMMAND="prompt-command; $PROMPT_COMMAND"
@@ -52,205 +46,8 @@ export PATH="$USR_PATH:$HEROKU_PATH:$PG_PATH:$NODE_PATH:$OSX_PATH"
 export RBENV_ROOT="/usr/local/var/rbenv"
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
-# -----------------------------------------------------------------------------------
 # Custom Prompt
-# -----------------------------------------------------------------------------------
 export PS1="[\W] >> "
-
-# -----------------------------------------------------------------------------
-# HEROKU
-# -----------------------------------------------------------------------------
-
-# Shorthand commands
-alias fs="foreman start"
-alias hc="heroku run rails console"
-alias htail="heroku logs --tail"
-alias hps="heroku ps"
-alias hadd="heroku config:add"
-
-# Migrate Heroku DB and restart
-function hmigrate {
-  heroku pgbackups:capture --expire && \
-  heroku run rake db:migrate && \
-  heroku restart
-}
-
-# Turn the Heroku app on and off quickly
-function hoff {
-  heroku scale web=0 && \
-  heroku maintenance:on
-}
-
-# Turn the Heroku app on and off quickly
-function hon {
-  heroku scale web=1 && \
-  heroku maintenance:off
-}
-
-# Deploy to Heroku, with optional extra commands, ex:
-# hdeploy
-# hdeploy migrate
-# hdeploy seed administrators
-function hdeploy {
-  if [[ "$1" = "migrate" ]]; then
-    git push github && \
-    heroku maintenance:on && \
-    heroku pgbackups:capture --expire && \
-    git push heroku && \
-    heroku run rake db:migrate && \
-    heroku restart && \
-    heroku maintenance:off
-  elif [[ "$1" = "seed" && -n "$2" ]]; then
-    git push github && \
-    heroku maintenance:on && \
-    heroku pgbackups:capture --expire && \
-    git push heroku && \
-    heroku run rake db:migrate && \
-    heroku run rake db:seed_fu FILTER=$2 && \
-    heroku restart && \
-    heroku maintenance:off
-  else
-    git push github && \
-    git push heroku
-  fi
-}
-
-# Print out the Heroku config as if it was a .env file
-function henv {
-  heroku config | sed -E "s/:[[:space:]]+/=/g" | tail -n +2
-}
-
-# Force a Heroku recompile
-function hforce-recompile {
-  git commit --allow-empty -m "Empty commit to force a recompile" && \
-  git push heroku master && \
-  git reset HEAD~ && \
-  git push --force heroku master
-}
-
-# export PATH="/usr/local/heroku/bin:$PATH"
-
-# -----------------------------------------------------------------------------
-# POSTGRES
-# -----------------------------------------------------------------------------
-
-# Dump a local database
-function dumpdb {
-  pg_dump --clean --format=custom --no-acl --verbose --file=$1.dump $1 && \
-  echo "✔ Written to ./$1.dump"
-}
-
-# Restore a database locally
-# https://devcenter.heroku.com/articles/heroku-postgres-import-export
-alias restoredb="pg_restore --verbose --clean --no-acl --no-owner -d"
-
-# Dump the current heroku production database to a file
-function hdump {
-  heroku pgbackups:capture --expire && \
-  wget -O ~/Downloads/latest.dump `heroku pgbackups:url` && \
-  echo "✔ Written to ~/Downloads/latest.dump"
-}
-
-# Download the current Heroku database and replace the local one
-function hpgpull {
-  dropdb $1
-  heroku pg:pull DATABASE $1 && \
-  echo "✔ Local database $1 overwritten with production data"
-}
-
-# -----------------------------------------------------------------------------
-# RAILS
-# -----------------------------------------------------------------------------
-
-# Shorthand commands
-alias be="bundle exec"
-
-function lb {
-  bundle install --path ./vendor/bundle && \
-  bundle exec rake rails:update:bin
-}
-
-# Update the bundle and clean out old cached gems
-function bu {
-  bundle update && \
-  bundle clean
-}
-
-# Create a Rails migration and open it
-function migration {
-  bundle exec rails generate migration $1 && \
-  subl db/migrate/`ls -t db/migrate/ | head -1`
-}
-
-# Remove the configured bundle from this Rails project folder
-function lb-implode {
-  echo "Destroying your local bundle"
-  echo "Removing ./vendor/bundle"
-  rm -rf ./vendor/bundle
-  echo "Removing ./.bundle"
-  rm -rf ./.bundle
-  echo "Removing Gemfile.lock"
-  rm -f Gemfile.lock
-}
-
-# Get started with a news Rails project quickly
-# Creates unversioned files and springs them open
-function railsup {
-
-  echo "Setting git config for core.filemode and core.ignorecase"
-  git config core.filemode false
-  git config core.ignorecase false
-
-  echo "Creating .env"
-  echo "PORT=8080" >> ".env"
-  echo "DATABASE_URL=postgres://localhost/DATABASE" >> ".env"
-  echo "RACK_ENV=development" >> ".env"
-  echo "RAILS_ENV=development" >> ".env"
-  subl "."
-  subl ".env"
-
-  echo "Creating tmp/cache"
-  mkdir "tmp"
-  mkdir "tmp/cache"
-  touch "tmp/cache/.gitkeep"
-
-  echo "Creating log/development.log"
-  mkdir "log"
-  touch "log/development.log"
-
-  echo "Installing bundle..."
-  lb
-
-}
-
-function uninstall-all-gems {
-  for i in `gem list --no-versions`; do gem uninstall -aIx $i; done
-}
-
-# Log In Rails Env
-alias 'devlog'='tail -f log/development.log | grep "dev:"'
-
-# -----------------------------------------------------------------------------
-# DJANGO
-# -----------------------------------------------------------------------------
-
-# Shorthand commands
-alias manage="python manage.py"
-alias localpip="pip install -r requirements.txt"
-alias runserver="manage runserver 0.0.0.0:8080"
-
-# Activate the venv, but give me back my pretty prompt
-function venv {
-  source venv/bin/activate
-  export PS1="\n\[$(tput setaf 2)\]VIRTUAL ⚡ \[$(tput sgr0)\]"
-}
-
-# Start Django Env
-alias 'startdjango'='source venv/bin/activate && ./manage.py runserver 0.0.0.0:8000'
-
-# -----------------------------------------------------------------------------
-# OSX/UNIX
-# -----------------------------------------------------------------------------
 
 # Shorthand
 alias la="ls -la"
@@ -286,6 +83,3 @@ function source {
 function npm-s {
   npm install --save-dev "${1}"
 }
-
-### Added by the Heroku Toolbelt
-# export PATH="/usr/local/heroku/bin:$PATH"
