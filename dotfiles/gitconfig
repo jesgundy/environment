@@ -37,4 +37,5 @@ relativepaths = false
 default = current
 
 [pull]
+default = current
 ff = only
