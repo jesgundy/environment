@@ -1,10 +1,10 @@
 [user]
-	name = Jes Gundy
-	email = jesse.gundy@gmail.com
+name = # Jes Gundy
+email = #
 
 [core]
 editor = subl -w
-	excludesfile = /Users/jesse.gundy/.gitignore
+excludesfile = /Users/jesse.gundy/.gitignore
 autocrlf = input
 filemode = false
 ignorecase = false
