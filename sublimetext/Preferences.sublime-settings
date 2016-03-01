@@ -93,7 +93,7 @@
     ".hg",
     "CVS",
     ".sass-cache",
-    "node_modules"
+    ".bin"
   ],
   "font_face": "Source Code Pro",
   "font_options":
