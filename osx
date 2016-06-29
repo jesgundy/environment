@@ -133,9 +133,6 @@ defaults write com.apple.terminal StringEncodings -array 4
 # Disable spotlight Dictionary results
 defaults write com.apple.spotlight DictionaryLookupEnabled -bool false
 
-# Change notification banners to only last 2 seconds
-defaults write com.apple.notificationcenterui bannerTime 2
-
 # -----------------------------------------------------------------------------
 # HUP ALL THE THINGS
 # Restart OS X services after running the script
