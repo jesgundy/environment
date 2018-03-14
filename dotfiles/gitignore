@@ -4,6 +4,7 @@
 *.sublime-project
 *.sublime-workspace
 *~
+.c9/
 vim/.netrwhist
 
 # Compiled source
